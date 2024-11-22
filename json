@@ -1,0 +1,81 @@
+import React from 'react';
+import { useForm, Controller } from 'react-hook-form';
+
+interface Field {
+  id: string;
+  type: string;
+  label: string;
+  required: boolean;
+  placeholder?: string;
+  options?: { value: string; label: string }[];
+  validation?: { pattern: string; message: string };
+}
+
+interface FormSchema {
+  formTitle: string;
+  formDescription: string;
+  fields: Field[];
+}
+
+const DynamicForm = ({ schema }: { schema: FormSchema }) => {
+  const { control, handleSubmit } = useForm();
+
+  const onSubmit = (data: any) => {
+    console.log(data);
+    alert('Form submitted successfully!');
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <h2 className="text-lg font-bold">{schema.formTitle}</h2>
+      <p className="text-gray-600">{schema.formDescription}</p>
+      {schema.fields.map((field) => (
+        <div key={field.id} className="flex flex-col space-y-1">
+          <label htmlFor={field.id} className="font-medium">
+            {field.label}
+          </label>
+          <Controller
+            name={field.id}
+            control={control}
+            rules={{
+              required: field.required && 'This field is required',
+              pattern: field.validation?.pattern && {
+                value: new RegExp(field.validation.pattern),
+                message: field.validation.message,
+              },
+            }}
+            render={({ field: inputField, fieldState }) => (
+              <>
+                {field.type === 'text' && (
+                  <input
+                    id={field.id}
+                    {...inputField}
+                    placeholder={field.placeholder}
+                    className="p-2 border rounded"
+                  />
+                )}
+                {field.type === 'select' && (
+                  <select id={field.id} {...inputField} className="p-2 border rounded">
+                    {field.options?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {fieldState.error && (
+                  <span className="text-red-500">{fieldState.error.message}</span>
+                )}
+              </>
+            )}
+          />
+        </div>
+      ))}
+      <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+        Submit
+      </button>
+    </form>
+  );
+};
+
+export default DynamicForm;
